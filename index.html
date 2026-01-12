@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<title>Comprendre le langage Kiara pour les nulles</title>
+<style>
+body { margin:0; font-family:Arial; background:#eaeded; }
+.amazon-header { background:#131921; color:white; padding:10px 20px; display:flex; gap:20px; align-items:center; }
+.amazon-logo { font-size:24px; font-weight:bold; color:#ff9900; }
+.search-bar { flex:1; }
+.search-bar input { width:100%; padding:8px; border-radius:4px; border:none; }
+.container { max-width:1000px; margin:30px auto; background:white; padding:20px; display:flex; gap:30px; }
+.cover img { width:300px; border:1px solid #ccc; }
+.price { font-size:24px; color:#B12704; }
+
+.fake-amazon-button {
+  background:#ffd814; border:1px solid #fcd200; padding:10px 15px; border-radius:20px;
+  text-decoration:none; color:black; display:inline-block;
+}
+
+.promo-button {
+  display:inline-block; margin-top:20px; padding:15px 20px; background:#ff9900;
+  color:black; font-weight:bold; text-decoration:none; border-radius:8px; font-size:18px;
+}
+
+.stars span { font-size:28px; cursor:pointer; color:#ccc; }
+.stars span.active { color:#ffa41c; }
+
+.review-box { margin-top:30px; border-top:1px solid #ddd; padding-top:20px; }
+.review { border-bottom:1px solid #ddd; padding:10px 0; }
+.review strong { font-size:16px; }
+.edit-btn { cursor:pointer; margin-left:10px; }
+textarea, input { width:100%; padding:8px; margin:5px 0; }
+
+</style>
+</head>
+<body>
+
+<div class="amazon-header">
+  <div class="amazon-logo">amazon</div>
+  <div class="search-bar"><input placeholder="Rechercher sur Amazon"></div>
+  <div>Compte</div><div>Panier</div>
+</div>
+
+<div class="container">
+  <div class="cover">
+    <img src="k.png" alt="Couverture du livre">
+  </div>
+
+  <div class="info">
+    <h1>Comprendre le langage Kiara pour les nulles</h1>
+    <p class="price">19,99 €</p>
+
+    <p>⭐ Note moyenne : <span id="average">0</span>/5 — (<span id="count">0</span> avis)</p>
+
+    <a class="fake-amazon-button" href="https://discord.gg/MecaFR" target="_blank">Ajouter au panier</a>
+
+    <p>Le guide ultime pour comprendre le mystérieux langage Kiara.</p>
+
+    <a class="promo-button" href="https://youtu.be/dQw4w9WgXcQ?si=1Z-HCILupUBiBgb3" target="_blank">
+      👉 Clique ici pour bénéficier de -15% avec le code CÉPATOU
+    </a>
+
+    <!-- FORMULAIRE AVIS -->
+    <div class="review-box">
+      <h2>Laisser un avis</h2>
+      <input id="nameInput" placeholder="Ton nom">
+      <div class="stars" id="starInput"></div>
+      <textarea id="commentInput" placeholder="Ton commentaire..."></textarea>
+      <button onclick="submitReview()">Publier l'avis</button>
+
+      <h2>Avis des clients</h2>
+      <div id="reviews"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+let reviews = JSON.parse(localStorage.getItem("reviews")) || [];
+let selectedStars = 0;
+
+const starInput = document.getElementById("starInput");
+const reviewsDiv = document.getElementById("reviews");
+const averageEl = document.getElementById("average");
+const countEl = document.getElementById("count");
+
+function drawStarInput() {
+  starInput.innerHTML = "";
+  for (let i = 1; i <= 5; i++) {
+    const s = document.createElement("span");
+    s.textContent = "★";
+    if (i <= selectedStars) s.classList.add("active");
+    s.onclick = () => { selectedStars = i; drawStarInput(); };
+    starInput.appendChild(s);
+  }
+}
+
+function renderReviews() {
+  reviewsDiv.innerHTML = "";
+  if (reviews.length === 0) {
+    reviewsDiv.innerHTML = "<p>Aucun avis pour le moment.</p>";
+  }
+
+  let sum = 0;
+
+  reviews.forEach((r, index) => {
+    sum += r.stars;
+
+    const div = document.createElement("div");
+    div.className = "review";
+    div.innerHTML = `
+      <strong>${r.name}</strong> — ${"★".repeat(r.stars)}
+      <span class="edit-btn" onclick="editReview(${index})">✏️</span>
+      <p>${r.comment}</p>
+    `;
+    reviewsDiv.appendChild(div);
+  });
+
+  const avg = reviews.length ? (sum / reviews.length).toFixed(1) : 0;
+  averageEl.textContent = avg;
+  countEl.textContent = reviews.length;
+}
+
+function submitReview() {
+  const name = document.getElementById("nameInput").value.trim();
+  const comment = document.getElementById("commentInput").value.trim();
+
+  if (!name || !comment || selectedStars === 0) {
+    alert("Remplis le nom, le commentaire et les étoiles.");
+    return;
+  }
+
+  reviews.push({ name, comment, stars: selectedStars });
+  localStorage.setItem("reviews", JSON.stringify(reviews));
+
+  document.getElementById("nameInput").value = "";
+  document.getElementById("commentInput").value = "";
+  selectedStars = 0;
+  drawStarInput();
+  renderReviews();
+}
+
+function editReview(index) {
+  const r = reviews[index];
+  const newComment = prompt("Modifier ton commentaire :", r.comment);
+  if (newComment !== null) {
+    r.comment = newComment;
+    localStorage.setItem("reviews", JSON.stringify(reviews));
+    renderReviews();
+  }
+}
+
+drawStarInput();
+renderReviews();
+</script>
+
+</body>
+</html>
